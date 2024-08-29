@@ -38,7 +38,7 @@ def get_data_config(data_path, q_set, emb_model):
         config["path_to_q_rel"] = None
     return config
 
-def run_all_test(data_path, output_path):
+def run_all_test(data_path, output_path, image_or_text):
     #add "text-embedding-3-large" below to also run TE3-L
     ALL_TXT_MODEL_NAMES = ["bge-small-en-v1.5", "gte-large-en-v1.5"]
     ALL_IMG_MODEL_NAMES = ["clip-vit-large-patch14", "clip-vit-base-patch32"]
@@ -57,57 +57,60 @@ def run_all_test(data_path, output_path):
 
     test_dir = f"{output_path}/tests"
     base_test_name=f"baseline_res"
-    for model_name in []:#ALL_TXT_MODEL_NAMES:
-        methods_to_run = ["no_ft", "NUDGEM", "NUDGEN","AdapterFineTuner"]
-        #Uncomment to also run PTFT for BGE-S
-        #if model_name in models_for_ptft:
-        #    methods_to_run.append('PTFT')
-        #    Path(model_checkpoint_path).mkdir(parents=True, exist_ok=True)
-        test_path = f"{test_dir}/{base_test_name}_{model_name}"
-        Path(test_dir).mkdir(parents=True, exist_ok=True)
-        Path(test_path).mkdir(parents=True, exist_ok=True)
+    if image_or_text == "text":
+        for model_name in ALL_TXT_MODEL_NAMES:
+            methods_to_run = ["no_ft", "NUDGEM", "NUDGEN","AdapterFineTuner"]
+            #Uncomment to also run PTFT for BGE-S
+            #if model_name in models_for_ptft:
+            #    methods_to_run.append('PTFT')
+            #    Path(model_checkpoint_path).mkdir(parents=True, exist_ok=True)
+            test_path = f"{test_dir}/{base_test_name}_{model_name}"
+            Path(test_dir).mkdir(parents=True, exist_ok=True)
+            Path(test_path).mkdir(parents=True, exist_ok=True)
 
-        for q_set in TEXT_DATASETS:
-            for method in methods_to_run:
-                config_path = f"{test_path}/config_{method}.json"
-                with open(config_path, mode='w') as f:
-                    json.dump(ft_config[method], f)
+            for q_set in TEXT_DATASETS:
+                for method in methods_to_run:
+                    config_path = f"{test_path}/config_{method}.json"
+                    with open(config_path, mode='w') as f:
+                        json.dump(ft_config[method], f)
 
-                data_config_path = f"{test_path}/data_config_{q_set}.json"
-                data_config = get_data_config(data_path, q_set, model_name)
-                with open(data_config_path, mode='w') as f:
-                    json.dump(data_config, f)
+                    data_config_path = f"{test_path}/data_config_{q_set}.json"
+                    data_config = get_data_config(data_path, q_set, model_name)
+                    with open(data_config_path, mode='w') as f:
+                        json.dump(data_config, f)
 
-                cmd = f"python -u run_retrieval_eval.py {q_set} {method} {base_test_name} {test_path} {config_path} {data_config_path}"
+                    cmd = f"python -u run_retrieval_eval.py {q_set} {method} {base_test_name} {test_path} {config_path} {data_config_path}"
 
-                cmd += f" >> {test_path}/out.txt"
-                print(cmd)
-                process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-                process.wait()
+                    cmd += f" >> {test_path}/out.txt"
+                    print(cmd)
+                    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+                    process.wait()
 
+    elif image_or_text == "image":
+        for model_name in ALL_IMG_MODEL_NAMES:
+            test_path = f"{test_dir}/{base_test_name}_{model_name}"
+            Path(test_dir).mkdir(parents=True, exist_ok=True)
+            Path(test_path).mkdir(parents=True, exist_ok=True)
+            test_name =base_test_name+f"_{model_name}" 
+            methods_to_run = ["no_ft", "NUDGEM", "NUDGEN","AdapterFineTuner"]
+            for q_set in IMAGE_DATASETS:
+                for method in methods_to_run:
+                    config_path = f"{test_path}/config_{method}.json"
+                    with open(config_path, mode='w') as f:
+                        json.dump(ft_config[method], f)
 
-    for model_name in ALL_IMG_MODEL_NAMES:
-        test_path = f"{test_dir}/{base_test_name}_{model_name}"
-        Path(test_dir).mkdir(parents=True, exist_ok=True)
-        Path(test_path).mkdir(parents=True, exist_ok=True)
-        test_name =base_test_name+f"_{model_name}" 
-        methods_to_run = ["no_ft", "NUDGEM", "NUDGEN","AdapterFineTuner"]
-        for q_set in IMAGE_DATASETS:
-            for method in methods_to_run:
-                config_path = f"{test_path}/config_{method}.json"
-                with open(config_path, mode='w') as f:
-                    json.dump(ft_config[method], f)
+                    data_config_path = f"{test_path}/data_config_{q_set}.json"
+                    data_config = get_data_config(data_path, q_set, model_name)
+                    with open(data_config_path, mode='w') as f:
+                        json.dump(data_config, f)
 
-                data_config_path = f"{test_path}/data_config_{q_set}.json"
-                data_config = get_data_config(data_path, q_set, model_name)
-                with open(data_config_path, mode='w') as f:
-                    json.dump(data_config, f)
-
-                cmd = f"python -u run_retrieval_eval.py {q_set} {method} {test_path} {config_path} {data_config_path}"
-                cmd += f" >> {test_path}/out.txt"
-                print(cmd)
-                process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-                process.wait()
+                    cmd = f"python -u run_retrieval_eval.py {q_set} {method} {base_test_name} {test_path} {config_path} {data_config_path}"
+                    cmd += f" >> {test_path}/out.txt"
+                    print(cmd)
+                    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+                    process.wait()
+    else:
+        assert False, "neither ran image, nor text exps"
 
 
 if __name__ == "__main__":
@@ -116,6 +119,8 @@ if __name__ == "__main__":
                                 help='Directory of the processed data files')
     parser.add_argument('output_path', type=str,
                                 help='Directory for test outputs')
+    parser.add_argument('image_or_text', type=str,
+                                help='run image or text experiments. The value must be on of "image" or "text".')
     args = parser.parse_args()
-    run_all_test(args.data_path, args.output_path)
+    run_all_test(args.data_path, args.output_path, args.image_or_text)
 

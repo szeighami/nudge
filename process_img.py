@@ -116,7 +116,7 @@ def embed(q_set, data_path, prefix, emb_model, coco_path, batch_size):
     q_df.to_csv(f'{data_path}/qs_{q_set}_{split_type}_{split}.csv')
 
 
-def create_splits(q_set, data_path):
+def create_splits(q_set, data_path, emb_model):
     run_no = 0
     np.random.seed(run_no)
     dataset_name= q_set
@@ -164,15 +164,11 @@ def create_splits(q_set, data_path):
 
 def process_all(data_path, coco_path):
     batch_size = 32
-    i = 0
     for emb_prefix, emb_model  in [("openai", "clip-vit-base-patch32"), ("openai", "clip-vit-large-patch14")]:
         for q_set in ['coco', 'flickr']:
             print(q_set, emb_model)
-            if i == 0:
-                i+=1
-                continue
             embed(q_set, data_path, emb_prefix, emb_model, coco_path, batch_size)
-            create_splits(q_set, data_path)
+            create_splits(q_set, data_path, emb_model)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
