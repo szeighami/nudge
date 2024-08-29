@@ -1,5 +1,5 @@
 # NDUGE
-This repo contains the code for NUDGE: Lightweight Non-Parametric Embedding Fine-Tuning. The method solves a constrained optimization problem to move data embeddings towards the embedding of training queries for which they are the ground-truth answer. NUDGE-M and NUDGE-N are two variants in this repository, each solving the optimization problem with different constraints. 
+This repo contains the code for NUDGE: Lightweight Non-Parametric Embedding Fine-Tuning. NUDGE solves a constrained optimization problem to move data embeddings towards the embedding of training queries for which they are the ground-truth answer. NUDGE-M and NUDGE-N are two variants in this repository, each solving the optimization problem with different constraints. NUDGE takes data embeddings and a training set, and outputs new fine-tuned data embeddings.
 
 <p align="center">
 <img src="https://github.com/szeighami/nudge/blob/main/nudge_overview.jpg" width="500">
@@ -9,7 +9,7 @@ This repo contains the code for NUDGE: Lightweight Non-Parametric Embedding Fine
 TODO 
 
 ## Getting Started
-The following code shows an example of using NUDGE to fine-tune embeddings on [nfcorpus](https://www.cl.uni-heidelberg.de/statnlpgroup/nfcorpus/). The code is also available in this [notebook](https://github.com/szeighami/nudge/blob/main/example.ipynb). 
+The following code shows an example of using NUDGE to fine-tune embeddings on [nfcorpus](https://www.cl.uni-heidelberg.de/statnlpgroup/nfcorpus/). The code is also available in this [notebook](https://github.com/szeighami/nudge/blob/main/example.ipynb). Run the code from the root of the repo.
 
 Load dataset and embed the data and queries:
 ```python
@@ -80,7 +80,7 @@ Run
 ```
 python run_end_to_end.py
 ```
-to run all baseline experiments in the paper (e.g, Tables 3-4). It downloads, processes and embeds the datasets, and the runs NUDGE and the baselines on all datasets and for the open source models used in the paper. The code will output the following tables after running the experiments, each table summarizing the results for an embedding model
+to run all baseline experiments in the paper (e.g, Tables 3-4). It downloads, processes and embeds the datasets, and then runs NUDGE and the baselines on all datasets and for the open source models used in the paper. The code will output the following tables after running the experiments, each table summarizing the results for an embedding model
 
 ```
 Avg bge-small-en-v1.5 results
