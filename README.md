@@ -47,8 +47,8 @@ No Fine-Tuning recall@10: 31.4, ndcg@10: 33.9
 NUDGE-N recall@10: 43.7, ndcg@10: 44.5
 ```
 
-### Other datasets
-The text datasets in the paper are hosted on huggingface [here](https://huggingface.co/sepz) (the datasets were created using this file). The above code can be run with any of `nfcorpus`, `scifact`, `arguana`, `fever`, `nq`, `triviaqa` and `hotpotqa`. We do not host the image datasets used in the paper, but running `python run_end_to_end.py` downloads and processes the image datasets and runs the experiments on the image datasets (as well as text datasets).
+### Other Datasets
+The text datasets in the paper are hosted on huggingface [here](https://huggingface.co/sepz) (the datasets were created using this file). The above code can be run with any of `nfcorpus`, `scifact`, `arguana`, `fever`, `nq`, `triviaqa` and `hotpotqa`. For running experiments on image datasets, run `python run_end_to_end.py` to download and process the image datasets and to run the experiments on the image datasets (as well as text datasets).
 
 ### Larger Datasets
 For the larger dataset (i.e., `fever`, `nq`, `triviaqa` and `hotpotqa`), you may run out of memory if you run the above. Instead, `NUDGE` allows for an optimization where data records that are not an answer to any of the training or validation queries are filtered out and accounted for separately. Such data records still impact fine-tuning, but only through their impact on validation accuracy. The following code
@@ -76,6 +76,40 @@ but uses less memory if many data records are not an answer to any training quer
 
 
 ## Running End to End Experiments
+Run 
+```
+python run_end_to_end.py
+```
+to run all baseline experiments in the paper (e.g, Tables 3-4). It downloads, processes and embeds the datasets, and the runs NUDGE and the baselines on all datasets and for the open source models used in the paper. The code will output the following tables after running the experiments, each table summarizing the results for an embedding model
 
-TODO
-
+```
+Avg bge-small-en-v1.5 results
+                  recall_1  recall_10   ndcg_10
+finetuner                                      
+AdapterFineTuner  0.395431   0.654708  0.516281
+NUDGEM            0.496965   0.666103  0.571709
+NUDGEN            0.520770   0.724993  0.612650
+no_ft             0.370072   0.624062  0.486494
+Avg gte-large-en-v1.5 results
+                  recall_1  recall_10   ndcg_10
+finetuner                                      
+AdapterFineTuner  0.451483   0.684443  0.556292
+NUDGEM            0.520941   0.733903  0.612058
+NUDGEN            0.534145   0.747116  0.626990
+no_ft             0.415772   0.670296  0.532067
+Avg clip-vit-base-patch32 results
+                  recall_1  recall_10   ndcg_10
+finetuner                                      
+AdapterFineTuner   0.18475    0.43495  0.298832
+NUDGEM             0.28640    0.55070  0.409338
+NUDGEN             0.28795    0.55355  0.411184
+no_ft              0.15870    0.40160  0.268508
+Avg clip-vit-large-patch14 results
+                  recall_1  recall_10   ndcg_10
+finetuner                                      
+AdapterFineTuner   0.24120    0.50880  0.364832
+NUDGEM             0.30130    0.58115  0.431822
+NUDGEN             0.30100    0.58235  0.432779
+no_ft              0.20475    0.46525  0.324633
+```
+To also run the OpenAI models, please make modifications here and here as instructed, and make sure the api key is set correctly.  To also run PTFT, uncomment here
