@@ -125,4 +125,4 @@ NUDGEM             0.30130    0.58115  0.431822
 NUDGEN             0.30100    0.58235  0.432779
 no_ft              0.20475    0.46525  0.324633
 ```
-To also run the OpenAI models, please make modifications [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/process_txt.py#L184) and [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/run_baseline_tests.py#L42) as instructed, and make sure the api key is set correctly.  To also run PTFT, uncomment [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/run_baseline_tests.py#L63).
+To also run the OpenAI models, make modifications [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/process_txt.py#L184) and [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/run_baseline_tests.py#L42) as instructed.  To also run PTFT, uncomment [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/run_baseline_tests.py#L63).
