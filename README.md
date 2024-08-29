@@ -11,7 +11,6 @@ Using docker (recommended), create a container using the providing docker file b
 ```
 docker image build -t nudge_img:1.0 -f Dockerfile .
 docker container run -p 8888:8888 --gpus '"device=0"' -it --name nudge nudge_img:1.0
-docker attach nudge
 ```
 Then, you can run NUDGE from inside the container (see below).
 
