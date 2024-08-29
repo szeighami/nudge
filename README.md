@@ -12,7 +12,7 @@ Using docker (recommended), create a container using the provided Dockerfile by 
 docker image build -t nudge_img:1.0 -f Dockerfile .
 docker container run -p 8888:8888 --gpus '"device=0"' -it --name nudge nudge_img:1.0
 ```
-Then, you can run NUDGE from inside the container (see below).
+Then, you can run NUDGE from inside the container. Run [this](https://github.com/szeighami/nudge/blob/main/example.ipynb) notebook for a simple example, also discussed below. 
 
 Alternatively, install dependencies by running the following from the root of the repo:
 ```
