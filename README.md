@@ -7,7 +7,7 @@ This repo contains the code for NUDGE: Lightweight Non-Parametric Embedding Fine
 
 ## Getting Started
 ### Setup
-Using docker (recommended), create a container using the providing docker file by running the following from the root of the repo:
+Using docker (recommended), create a container using the provided Dockerfile by running the following from the root of the repo:
 ```
 docker image build -t nudge_img:1.0 -f Dockerfile .
 docker container run -p 8888:8888 --gpus '"device=0"' -it --name nudge nudge_img:1.0
