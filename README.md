@@ -34,7 +34,7 @@ no_ft_res = kNNRetriever(data_emb).retrieve_topk_from_emb_batch(k=10, q_embeds=q
 ```
 Compare accuracy:
 ```python
-from utils import calc_metrics_batch, 
+from utils import calc_metrics_batch
 metrics = [('recall',10), ('ndcg',10)]
 no_ft_accs = calc_metrics_batch(metrics,no_ft_res, query_sets['test']['q_ans_indx'], query_sets['test']['q_ans_indx_rel'])
 nudgen_accs = calc_metrics_batch(metrics,nudge_n_res, query_sets['test']['q_ans_indx'], query_sets['test']['q_ans_indx_rel'])
