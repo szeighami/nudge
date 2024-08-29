@@ -5,10 +5,24 @@ This repo contains the code for NUDGE: Lightweight Non-Parametric Embedding Fine
 <img src="https://github.com/szeighami/nudge/blob/main/nudge_overview.jpg" width="500">
 </p>
 
-## Setup
-TODO 
-
 ## Getting Started
+### Setup
+Using docker (recommended), create a container using the providing docker file by running the following from the root of the repo:
+```
+docker image build -t nudge_img:1.0 -f Dockerfile .
+docker container run -p 8888:8888 --gpus '"device=0"' -it --name nudge nudge_img:1.0
+docker attach nudge
+```
+Then, you can run NUDGE from inside the container (see below).
+
+Alternatively, install dependencies by running the following from the root of the repo:
+```
+pip install -r requirements.txt
+```
+
+
+### Example
+
 The following code shows an example of using NUDGE to fine-tune embeddings on [nfcorpus](https://www.cl.uni-heidelberg.de/statnlpgroup/nfcorpus/). The code is also available in this [notebook](https://github.com/szeighami/nudge/blob/main/example.ipynb). Run the code from the root of the repo.
 
 Load dataset and embed the data and queries:
@@ -34,7 +48,7 @@ no_ft_res = kNNRetriever(data_emb).retrieve_topk_from_emb_batch(k=10, q_embeds=q
 ```
 Compare accuracy:
 ```python
-from utils import calc_metrics_batch, 
+from utils import calc_metrics_batch
 metrics = [('recall',10), ('ndcg',10)]
 no_ft_accs = calc_metrics_batch(metrics,no_ft_res, query_sets['test']['q_ans_indx'], query_sets['test']['q_ans_indx_rel'])
 nudgen_accs = calc_metrics_batch(metrics,nudge_n_res, query_sets['test']['q_ans_indx'], query_sets['test']['q_ans_indx_rel'])
