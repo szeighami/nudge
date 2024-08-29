@@ -61,7 +61,7 @@ NUDGE-N recall@10: 43.7, ndcg@10: 44.5
 ```
 
 ### Other Datasets
-The text datasets in the paper are hosted on huggingface [here](https://huggingface.co/sepz) (the datasets were created using this file). The above code can be run with any of `nfcorpus`, `scifact`, `arguana`, `fever`, `nq`, `triviaqa` and `hotpotqa`. For running experiments on image datasets, run `python run_end_to_end.py` to download and process the image datasets and to run the experiments on the image datasets (as well as text datasets).
+The text datasets in the paper are hosted on huggingface [here](https://huggingface.co/sepz) (the datasets were created using [this](https://github.com/szeighami/nudge/blob/main/process_data_to_hf_datasets.py) file). The above code can be run with any of `nfcorpus`, `scifact`, `arguana`, `fever`, `nq`, `triviaqa` and `hotpotqa`. For running experiments on image datasets, run `python run_end_to_end.py` to download and process the image datasets and to run the experiments on the image datasets (as well as text datasets).
 
 ### Larger Datasets
 For the larger dataset (i.e., `fever`, `nq`, `triviaqa` and `hotpotqa`), you may run out of memory if you run the above. Instead, `NUDGE` allows for an optimization where data records that are not an answer to any of the training or validation queries are filtered out and accounted for separately. Such data records still impact fine-tuning, but only through their impact on validation accuracy. The following code
@@ -125,4 +125,4 @@ NUDGEM             0.30130    0.58115  0.431822
 NUDGEN             0.30100    0.58235  0.432779
 no_ft              0.20475    0.46525  0.324633
 ```
-To also run the OpenAI models, please make modifications here and here as instructed, and make sure the api key is set correctly.  To also run PTFT, uncomment here
+To also run the OpenAI models, please make modifications [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/process_txt.py#L184) and [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/run_baseline_tests.py#L42) as instructed, and make sure the api key is set correctly.  To also run PTFT, uncomment [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/run_baseline_tests.py#L63).
