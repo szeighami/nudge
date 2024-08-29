@@ -32,7 +32,7 @@ os.system(f'python run_baseline_tests.py {data_path} {output_path} image')
 os.system(f'python run_baseline_tests.py {data_path} {output_path} text')
 
 for model in ['bge-small-en-v1.5', 'gte-large-en-v1.5', 'clip-vit-base-patch32', 'clip-vit-large-patch14']:
-    df = pd.read_csv(f"/workspace/nudge/tests/baseline_res_{model}/res.csv")
+    df = pd.read_csv(f"{output_path}/tests/baseline_res_{model}/res.csv")
     print(f"Avg {model} results")
     print(df[['finetuner', 'recall_1', 'recall_10', 'ndcg_10']].groupby('finetuner').mean()[['recall_1', 'recall_10', 'ndcg_10']])
 print(f"See {output_path}/tests for detailed results!")
