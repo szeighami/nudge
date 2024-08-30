@@ -1,4 +1,4 @@
-# NDUGE
+# NUDGE
 This repo contains the code for NUDGE: Lightweight Non-Parametric Embedding Fine-Tuning. NUDGE solves a constrained optimization problem to move data embeddings towards the embedding of training queries for which they are the ground-truth answer. NUDGE-M and NUDGE-N are two variants in this repository, each solving the optimization problem with different constraints. NUDGE takes data embeddings and a training set as input, and outputs new fine-tuned data embeddings.
 
 <p align="center">
