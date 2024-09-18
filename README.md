@@ -36,7 +36,9 @@ where `data_embs` is a numpy array containing data embeddings, `train_q_embs` an
 
 An end-to-end example of using `NUDGE` is shown below, to fine-tune embeddings on [nfcorpus](https://www.cl.uni-heidelberg.de/statnlpgroup/nfcorpus/). The code is also available in this [notebook](https://github.com/szeighami/nudge/blob/main/example.ipynb). Run the code from the root of the repo.
 
-`NUDGE` does not embed the queries or data and operates on the embeddings directly. Thus, we first need to embed the data and queries. Here we use [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5), and the `sentence_transformers` library for embeddings, and use `datasets` to load the data `nfcorpus` dataset. First install the two libraries
+`NUDGE` does not embed the queries or data and operates on the embeddings directly. Thus, we first need to embed the data and queries. Here we use [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5), and the `sentence_transformers` library for embeddings, and use `datasets` to load the  `nfcorpus` dataset. 
+
+Install the two libraries
 
 ```
 pip install sentence_transformers datasets
