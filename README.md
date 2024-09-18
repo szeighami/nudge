@@ -9,6 +9,8 @@ NUDGE modifies data embeddings *non-parametrically*, i.e., it does not change an
 As the figure above shows, NUDGE changes data embeddings within a constrained region (shown in dashed lines) to maximize similarity with training queries. Data embeddings in the figure are colored based on queries for which they are the ground-truth answers.
 
 ## Getting Started
+Documentation is available along with the code in nudge/nudge.py. We further discuss how to install and use NUDGE
+
 ### Install
 To install NUDGE, run 
 ```
