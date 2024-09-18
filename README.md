@@ -1,28 +1,47 @@
 # NUDGE
-This repo contains the code for NUDGE: Lightweight Non-Parametric Embedding Fine-Tuning. NUDGE solves a constrained optimization problem to move data embeddings towards the embedding of training queries for which they are the ground-truth answer. NUDGE-M and NUDGE-N are two variants in this repository, each solving the optimization problem with different constraints. NUDGE takes data embeddings and a training set as input, and outputs new fine-tuned data embeddings.
+This repo contains the code for [NUDGE: Lightweight Non-Parametric Embedding Fine-Tuning](https://arxiv.org/pdf/2409.02343). NUDGE solves a constrained optimization problem to move data embeddings towards the embedding of training queries for which they are the ground-truth answer. NUDGE-M and NUDGE-N are two variants in this repository, each solving the optimization problem with different constraints. NUDGE takes data embeddings and a training set as input, and outputs new fine-tuned data embeddings.
 
 <p align="center">
 <img src="https://github.com/szeighami/nudge/blob/main/nudge_overview.jpg" width="500">
 </p>
 
 ## Getting Started
-### Setup
-Using docker (recommended), create a container using the provided Dockerfile by running the following from the root of the repo:
+### Install
+To install NUDGE, run 
 ```
-docker image build -t nudge_img:1.0 -f Dockerfile .
-docker container run -p 8888:8888 --gpus '"device=0"' -it --name nudge nudge_img:1.0
+pip install nudge-ft
 ```
-Then, you can run NUDGE from inside the container. Run [this](https://github.com/szeighami/nudge/blob/main/example.ipynb) notebook for a simple example, also discussed below. 
+### Workflow
+NUDGE operates on embeddings. It fine-tunes data embeddings given training and validation queries. This package provides two classes, `NUDGEM` and `NUDGEN` to do so, implementing NUDGE-N and NUDGE-M in [the paper](https://arxiv.org/pdf/2409.02343). Both have the same interface and can be imported as
 
-Alternatively, install dependencies by running the following from the root of the repo:
+```python
+from nudge import NUDGEN, NUDGEM
 ```
-pip install -r requirements.txt
+
+To use either class, you need to have already embedded the documents and training/validation queries and have ground-truth answers for training/validation queries. Then, call
+
+```python
+train_set = {'q_embs':train_q_embs, 'q_ans_indx':train_q_ans_indx}
+val_set = {'q_embs':val_q_embs, 'q_ans_indx':val_q_ans_indx}
+finetunde_embs_nudge_n = NUDGEN().finetune_embeddings(data_embs, train_set, val_set)
+finetunde_embs_nudge_m = NUDGEN().finetune_embeddings(data_embs, train_set, val_set)
 ```
+where `data_embs` is a numpy array containing data embeddings, `train_q_embs` and `val_q_embs` are numpy arrays containing embeddings of training queries and `train_q_ans_indx` and `val_q_ans_indx` contain ground-truth query answers. `train_q_ans_indx`/`val_q_ans_indx` are nested python lists, where the `i`-th item in `train_q_ans_indx`/`val_q_ans_indx` is the list of indexes of data records that are relevant to the `i`-th query. That is, `data_embs[train_q_ans_indx[i][j]]` is a positive data record for query `train_q_embs[i]`.
+
+
 
 
 ### Example
 
-The following code shows an example of using NUDGE to fine-tune embeddings on [nfcorpus](https://www.cl.uni-heidelberg.de/statnlpgroup/nfcorpus/). The code is also available in this [notebook](https://github.com/szeighami/nudge/blob/main/example.ipynb). Run the code from the root of the repo.
+An end-to-end example of using `NUDGE` is shown below, to fine-tune embeddings on [nfcorpus](https://www.cl.uni-heidelberg.de/statnlpgroup/nfcorpus/). The code is also available in this [notebook](https://github.com/szeighami/nudge/blob/main/example.ipynb). Run the code from the root of the repo.
+
+`NUDGE` does not embed the queries or data and operates on the embeddings directly. Thus, we first need to embed the data and queries. Here we use [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5), and the `sentence_transformers` library for embeddings, and use `datasets` to load the data `nfcorpus` dataset. First install the two libraries
+
+```
+pip install sentence_transformers datasets
+```
+
+
 
 Load dataset and embed the data and queries:
 ```python
@@ -61,7 +80,7 @@ NUDGE-N recall@10: 43.7, ndcg@10: 44.5
 ```
 
 ### Other Datasets
-The text datasets in the paper are hosted on huggingface [here](https://huggingface.co/sepz) (the datasets were created using [this](https://github.com/szeighami/nudge/blob/main/process_data_to_hf_datasets.py) file). The above code can be run with any of `nfcorpus`, `scifact`, `arguana`, `fever`, `nq`, `triviaqa` and `hotpotqa`. For running experiments on image datasets, run `python run_end_to_end.py` to download and process the image datasets and to run the experiments on the image datasets (as well as text datasets).
+More text datasets are hosted on huggingface [here](https://huggingface.co/sepz) (the datasets were created using [this](https://github.com/szeighami/nudge/blob/main/util/process_data_to_hf_datasets.py) file). The above code can be run with any of `nfcorpus`, `scifact`, `arguana`, `fever`, `nq`, `triviaqa` and `hotpotqa`.
 
 ### Larger Datasets
 For the larger dataset (i.e., `fever`, `nq`, `triviaqa` and `hotpotqa`), you may run out of memory if you run the above. Instead, `NUDGE` allows for an optimization where data records that are not an answer to any of the training or validation queries are filtered out and accounted for separately. Such data records still impact fine-tuning, but only through their impact on validation accuracy. The following code
@@ -89,40 +108,14 @@ but uses less memory if many data records are not an answer to any training quer
 
 
 ## Running End to End Experiments
-Run 
-```
-python run_end_to_end.py
-```
-to run all baseline experiments in the paper (e.g, Tables 3-4). It downloads, processes and embeds the datasets, and then runs NUDGE and the baselines on all datasets and for the open source models used in the paper. The code will output the following tables after running the experiments, each table summarizing the results for an embedding model
+To reproduce all baseline experiments in the paper (e.g, Tables 3-4 in [1]) follow the instructions in the paper_exps branch.
 
-```
-Avg bge-small-en-v1.5 results
-                  recall_1  recall_10   ndcg_10
-finetuner                                      
-AdapterFineTuner  0.395431   0.654708  0.516281
-NUDGEM            0.496965   0.666103  0.571709
-NUDGEN            0.520770   0.724993  0.612650
-no_ft             0.370072   0.624062  0.486494
-Avg gte-large-en-v1.5 results
-                  recall_1  recall_10   ndcg_10
-finetuner                                      
-AdapterFineTuner  0.451483   0.684443  0.556292
-NUDGEM            0.520941   0.733903  0.612058
-NUDGEN            0.534145   0.747116  0.626990
-no_ft             0.415772   0.670296  0.532067
-Avg clip-vit-base-patch32 results
-                  recall_1  recall_10   ndcg_10
-finetuner                                      
-AdapterFineTuner   0.18475    0.43495  0.298832
-NUDGEM             0.28640    0.55070  0.409338
-NUDGEN             0.28795    0.55355  0.411184
-no_ft              0.15870    0.40160  0.268508
-Avg clip-vit-large-patch14 results
-                  recall_1  recall_10   ndcg_10
-finetuner                                      
-AdapterFineTuner   0.24120    0.50880  0.364832
-NUDGEM             0.30130    0.58115  0.431822
-NUDGEN             0.30100    0.58235  0.432779
-no_ft              0.20475    0.46525  0.324633
-```
-To also run the OpenAI models, make modifications [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/process_txt.py#L184) and [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/run_baseline_tests.py#L42) as instructed.  To also run PTFT, uncomment [here](https://github.com/szeighami/nudge/blob/6a306a8525623216d4db3601e8b82af2438449d6/run_baseline_tests.py#L63).
+# References
+Sepanta Zeighami, Zac Wellmer, and Aditya Parameswaran. "NUDGE: Lightweight Non-Parametric Fine-Tuning of Embeddings for Retrieval." arXiv preprint arXiv:2409.02343 (2024).
+
+@article{zeighami2024nudge,
+  title={NUDGE: Lightweight Non-Parametric Fine-Tuning of Embeddings for Retrieval},
+  author={Zeighami, Sepanta and Wellmer, Zac and Parameswaran, Aditya},
+  journal={arXiv preprint arXiv:2409.02343},
+  year={2024}
+}
