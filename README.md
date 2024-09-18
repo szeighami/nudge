@@ -96,7 +96,7 @@ NUDGE-N recall@10: 43.7, ndcg@10: 44.5
 **More Datasets**. More text datasets are hosted on huggingface [here](https://huggingface.co/sepz) (the datasets were created using [this](https://github.com/szeighami/nudge/blob/main/util/process_data_to_hf_datasets.py) file). The above code can be run with any of `nfcorpus`, `scifact`, `arguana`, `fever`, `nq`, `triviaqa` and `hotpotqa`.
 
 ### Larger Datasets
-For the larger dataset (i.e., `fever`, `nq`, `triviaqa` and `hotpotqa`), you may run out of memory if you run the above. Instead, `NUDGE` allows for an optimization where data records that are not an answer to any of the training or validation queries are filtered out and accounted for separately. Such data records still impact fine-tuning, but only through their impact on validation accuracy. The following code
+For the larger dataset (i.e., `fever`, `nq`, `triviaqa` and `hotpotqa`), you may run out of memory if you run the above on GPU. The corpora contain many documents that are never a positive training sample but are loaded in GPU for fine-tuning. Instead, `NUDGE` allows for an optimization where data records that are not an answer to any of the training or validation queries are filtered out and accounted for separately. Such data records still impact fine-tuning, but only through their impact on validation accuracy. The following code
 ```python
 max_nontest_index = -1
 for split in ["train", "dev"]:
