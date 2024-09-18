@@ -1,9 +1,10 @@
 # NUDGE
-This repo contains the code for [NUDGE: Lightweight Non-Parametric Embedding Fine-Tuning](https://arxiv.org/pdf/2409.02343). NUDGE solves a constrained optimization problem to move data embeddings towards the embedding of training queries for which they are the ground-truth answer. NUDGE-M and NUDGE-N are two variants in this repository, each solving the optimization problem with different constraints. NUDGE takes data embeddings and a training set as input, and outputs new fine-tuned data embeddings.
+NUDGE is a lightweight tool to fine-tune embeddings for retrieval and RAG pipelines, presented in the paper [NUDGE: Lightweight Non-Parametric Embedding Fine-Tuning](https://arxiv.org/pdf/2409.02343) (see [this blog post](https://data-people-group.github.io/blogs/2024/09/05/nudge/) for simple overview). It runs in minutes and often improves retrieval accuracy by over 10%. It modifies data embeddings *non-parametrically*, i.e., it does not change any model parameters but instead move the data embeddings themselves to maximize accuracy. NUDGE solves a constrained optimization problem to do so, moving data embeddings towards the embedding of training queries for which they are the ground-truth answer. NUDGE-M and NUDGE-N are two variants of the approach, each solving the optimization problem with different constraints.
 
 <p align="center">
 <img src="https://github.com/szeighami/nudge/blob/main/nudge_overview.jpg" width="500">
 </p>
+As the figure above shows, NUDGE changes data embeddings within a constrained region (shown in dashed lines) to maximize similarity with training queries. Data embeddings in the figure are colored based on queries for which they are the ground-truth answers.
 
 ## Getting Started
 ### Install
