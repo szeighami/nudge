@@ -1,13 +1,29 @@
-import sys
-import gc
 import math
 
 import numpy as np
 import torch
 from torch.nn.functional import normalize
 
-from utils import compute_topk_sims
+def compute_topk_sims(q_embs, embeddings_nontrain, k, dist, batch_size):
+    topks_I =[]
+    topks_D =[]
+    for i in range(int(math.ceil(len(embeddings_nontrain)/batch_size))):
+        if dist == "cos":
+            curr_topk = torch.topk(torch.matmul(q_embs, torch.t(normalize(torch.from_numpy(embeddings_nontrain[i*batch_size:(i+1)*batch_size]).to(q_embs.device)))), k=k, dim=1)
+        elif dist == "dot":
+            curr_topk = torch.topk(torch.matmul(q_embs, torch.t(torch.from_numpy(embeddings_nontrain[i*batch_size:(i+1)*batch_size]).to(q_embs.device))), k=k, dim=1)
+        else:
+            assert False, "wrong dist metric"
+        topks_I.append(curr_topk.indices+i*batch_size)
+        topks_D.append(curr_topk.values)
+    all_topk = torch.topk(torch.cat(topks_D, dim=1), k=k, dim=1)
+    all_I = torch.cat(topks_I, dim=1)
+    topk_I = torch.gather(all_I, 1, all_topk.indices)
+    topk_D = all_topk.values
 
+    if with_index:
+        return topk_D, topk_I
+    return topk_D
 
 class NUDGEM:
     def __init__(self, device=None):
@@ -118,14 +134,14 @@ class NUDGEM:
 
 
 
-    def finetune_embeddings(self, embeddings, train_set, val_set, nontrain_embeddings_or_shard=None, val_batch_size=256, gamma=None):
+    def finetune_embeddings(self, embeddings, train_set, val_set, nontrain_embeddings=None, val_batch_size=256, gamma=None):
         embeddings = normalize(torch.from_numpy(embeddings).to(self.device))
         qs_train = torch.from_numpy(train_set["q_embs"]).to(self.device)
         qs_val = torch.from_numpy(val_set["q_embs"]).to(self.device)
 
         nontrain_sims = None
-        if nontrain_embeddings_or_shard is not None:
-            nontrain_sims = compute_topk_sims(qs_val, nontrain_embeddings_or_shard, 1, "cos")
+        if nontrain_embeddings is not None:
+            nontrain_sims = compute_topk_sims(qs_val, nontrain_embeddings, 1, "cos", val_batch_size)
             if nontrain_sims is not None:
                 nontrain_sims = nontrain_sims.reshape((-1, 1))
 
@@ -195,12 +211,12 @@ class NUDGEN:
             new_embs = embeddings
         return new_embs
 
-    def finetune_embeddings(self, embeddings, train_set, val_set, nontrain_embeddings_or_shard=None, val_batch_size=256, val_k=1, gamma=None):
+    def finetune_embeddings(self, embeddings, train_set, val_set, nontrain_embeddings=None, val_batch_size=256, val_k=1, gamma=None):
         qs_train, train_doc_to_q, qs_val, answer_val = self.get_train_val_sets(train_set, val_set, embeddings.shape[0])
 
         nontrain_sims = None
-        if nontrain_embeddings_or_shard is not None:
-            nontrain_sims = compute_topk_sims(qs_val, nontrain_embeddings_or_shard, val_k, "cos")
+        if nontrain_embeddings is not None:
+            nontrain_sims = compute_topk_sims(qs_val, nontrain_embeddings, val_k, "cos", val_batch_size)
             if nontrain_sims is not None:
                 nontrain_sims = nontrain_sims.reshape((-1, val_k))
                 answer_val = torch.cat([answer_val, torch.zeros_like(answer_val[:, :val_k])], dim=1)
