@@ -1,6 +1,6 @@
 from nudge import NUDGEM, NUDGEN
-from knnretriever import kNNRetriever
-from utils import calc_metrics_batch, load_hf_datasets, embed_data_and_query_sets
+from util.knnretriever import kNNRetriever
+from util.utils import calc_metrics_batch, load_hf_datasets, embed_data_and_query_sets
 
 dataset_name = 'nfcorpus'
 dataset, query_sets = load_hf_datasets(dataset_name)

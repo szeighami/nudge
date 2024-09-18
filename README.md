@@ -26,7 +26,7 @@ The following code shows an example of using NUDGE to fine-tune embeddings on [n
 
 Load dataset and embed the data and queries:
 ```python
-from utils import load_hf_datasets, embed_data_and_query_sets
+from util.utils import load_hf_datasets, embed_data_and_query_sets
 dataset_name = 'nfcorpus'
 dataset, query_sets = load_hf_datasets(dataset_name)
 data_emb, query_sets = embed_data_and_query_sets(dataset, query_sets, "BAAI/bge-small-en-v1.5")
@@ -38,7 +38,7 @@ finetunde_embs_nudge_n = NUDGEN().finetune_embeddings(data_emb, query_sets['trai
 ```
 Use fine-tuned embeddings to answer queries:
 ```python
-from knnretriever import kNNRetriever
+from util.knnretriever import kNNRetriever
 nudge_n_res = kNNRetriever(finetunde_embs_nudge_n).retrieve_topk_from_emb_batch(k=10, q_embeds=query_sets['test']['q_embs'])
 ```
 Use non-fine-tuned embeddings to answer queries:
@@ -47,7 +47,7 @@ no_ft_res = kNNRetriever(data_emb).retrieve_topk_from_emb_batch(k=10, q_embeds=q
 ```
 Compare accuracy:
 ```python
-from utils import calc_metrics_batch
+from util.utils import calc_metrics_batch
 metrics = [('recall',10), ('ndcg',10)]
 no_ft_accs = calc_metrics_batch(metrics,no_ft_res, query_sets['test']['q_ans_indx'], query_sets['test']['q_ans_indx_rel'])
 nudgen_accs = calc_metrics_batch(metrics,nudge_n_res, query_sets['test']['q_ans_indx'], query_sets['test']['q_ans_indx_rel'])
