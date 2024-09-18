@@ -1,8 +1,0 @@
-argparse==1.1
-tqdm==4.66.4
-numpy==1.26.4
-pandas==2.2.2
-torch==2.3.0
-transformers==4.39.3
-sentence_transformers==3.0.1
-datasets==2.20.0

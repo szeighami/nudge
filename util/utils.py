@@ -3,8 +3,6 @@ import gc
 import math
 import pickle
 
-from tqdm import tqdm
-import pandas as pd
 import numpy as np
 
 import torch
@@ -13,6 +11,7 @@ from sentence_transformers import SentenceTransformer
 from datasets import load_dataset
 
 def compute_topk_sims_given_shard_path(q_embs, shard_path, k, dist):
+    from tqdm import tqdm
     batch_size = 8192
 
     topks_I =[]
@@ -77,6 +76,7 @@ def compute_topk_sims(q_embs, nontrain_embeddings_or_shard, k, dist, with_index=
     return res[0]
 
 def get_data(path_to_raw_dataset, path_to_emb, path_to_all_emb, path_to_q_emb, path_to_q_df , path_to_q_ans, path_to_q_rel):
+    import pandas as pd
     if path_to_all_emb is not None:
         load_all_embs = True
     elif path_to_emb is not None:
