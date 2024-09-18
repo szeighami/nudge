@@ -24,7 +24,7 @@ To use either class, you need to have already embedded the documents and trainin
 train_set = {'q_embs':train_q_embs, 'q_ans_indx':train_q_ans_indx}
 val_set = {'q_embs':val_q_embs, 'q_ans_indx':val_q_ans_indx}
 finetunde_embs_nudge_n = NUDGEN().finetune_embeddings(data_embs, train_set, val_set)
-finetunde_embs_nudge_m = NUDGEN().finetune_embeddings(data_embs, train_set, val_set)
+finetunde_embs_nudge_m = NUDGEM().finetune_embeddings(data_embs, train_set, val_set)
 ```
 where `data_embs` is a numpy array containing data embeddings, `train_q_embs` and `val_q_embs` are numpy arrays containing embeddings of training queries and `train_q_ans_indx` and `val_q_ans_indx` contain ground-truth query answers. `train_q_ans_indx`/`val_q_ans_indx` are nested python lists, where the `i`-th item in `train_q_ans_indx`/`val_q_ans_indx` is the list of indexes of data records that are relevant to the `i`-th query. That is, `data_embs[train_q_ans_indx[i][j]]` is a positive data record for query `train_q_embs[i]`.
 
