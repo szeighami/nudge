@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='nudge-ft',
-    version='0.1.0',    
+    version='0.1.1',    
     description='NUDGE: Lightweight Non-Parametric Embedding Fine-Tuning',
     url='https://github.com/szeighami/nudge',
     author='Sepanta Zeighami',
