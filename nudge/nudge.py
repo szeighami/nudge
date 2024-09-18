@@ -1,8 +1,13 @@
 import math
+from typing import Dict, List, TypedDict
 
 import numpy as np
 import torch
 from torch.nn.functional import normalize
+
+class QueriesAnswersDict(TypedDict):
+    q_embs: np.ndarray
+    q_ans_indx: List[List[int]]
 
 def compute_topk_sims(q_embs, embeddings_nontrain, k, dist, batch_size):
     topks_I =[]
@@ -26,13 +31,79 @@ def compute_topk_sims(q_embs, embeddings_nontrain, k, dist, batch_size):
     return topk_D
 
 class NUDGEM:
-    def __init__(self, device=None):
+    def __init__(self, 
+            device: torch.device = None
+            ) -> None:
+        '''
+        Args: 
+            device (torch.device): Device to use for computation. If None, it uses torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        '''
         if device is None:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
             self.device = device
 
-    def get_I_i(self, curr_qs_val, data_embs, upd, curr_nontrain_sims, curr_val_anss):    
+    def finetune_embeddings(self, 
+            embeddings: np.ndarray, 
+            train_set: QueriesAnswersDict, 
+            val_set: QueriesAnswersDict, 
+            nontrain_embeddings: np.ndarray = None, 
+            val_batch_size: int = 256, 
+            gamma: List[float] = None
+            ) -> np.ndarray:
+        '''Fine-tunes the embeddings based on the train_set and val_set using NUDGE-M algorithm
+
+        The function computes a Delta matrix to add to the embeddings, computed by solving a constrined optimizeation problem. It returns new embeddings.
+
+        WARNING: the output of this algorithm are unnormalized embeddings, and similarity should be calculated based on dot product and not cosine similarity using embeddings from this algorithm
+
+        Args: 
+            embeddings (np.ndarray): Non-fine-tuned embeddings obtaind from a pre-trained embedding model
+            train_set (QueriesAnswersDict): A dictionary of the form {'q_embs': np.ndarray,  'q_ans_indx': List[List[int]]}, where train_set['q_embs'] contains embeddings for training queries and train_set['q_ans_indx'] contains ground-truth answers. train_set['q_ans_indx'][i] contains indexes of embeddings that are correct answers to the i-th query. That is, embeddings[train_set['q_ans_indx'][i][j]] is a positive sample for train_set['q_embs'][i]
+            val_set (QueriesAnswersDict): Similar to train_set but for validation
+            nontrain_embeddings (np.ndarray): If not None, it contains a set of data embeddings that are not the correct answer to training or validation queries. It can be used as a way of reducing memory consumption (default is None)
+            val_batch_size (int): Batch size for validation (default is 256)
+            gamma (List[float]): If not None, it contains the list gamma values to check for validation (default is None)
+
+        Returns:
+            np.ndarray: A numpy array containing  fine-tuned embeddings
+
+        '''
+        embeddings = normalize(torch.from_numpy(embeddings).to(self.device))
+        qs_train = torch.from_numpy(train_set["q_embs"]).to(self.device)
+        qs_val = torch.from_numpy(val_set["q_embs"]).to(self.device)
+
+        nontrain_sims = None
+        if nontrain_embeddings is not None:
+            nontrain_sims = compute_topk_sims(qs_val, nontrain_embeddings, 1, "cos", val_batch_size)
+            if nontrain_sims is not None:
+                nontrain_sims = nontrain_sims.reshape((-1, 1))
+
+        print("Calculating G")
+        train_doc_to_q = [[] for i in range(embeddings.shape[0])]
+        for i in range(len(qs_train)):
+            for j in range(len(train_set["q_ans_indx"][i])):
+                emb_indx = train_set["q_ans_indx"][i][j]
+                train_doc_to_q[emb_indx].append(i)
+
+        gs = []
+        for j in range(embeddings.shape[0]):
+            gs.append(torch.nan_to_num(-1*qs_train[train_doc_to_q[j]].sum(dim=0, keepdim=True)))
+        gs = normalize(torch.cat(gs, dim=0))
+
+        print("Finding gamma")
+        if gamma is None:
+            intrval_min_points, intrval_max_points= self._get_all_I_i(qs_val, val_batch_size, embeddings, gs, nontrain_sims, val_set["q_ans_indx"])
+
+            gamma_star = self._get_point_of_most_intersection(intrval_min_points, intrval_max_points)
+        else:
+            gamma_star=gamma
+        embeddings = embeddings-gamma_star*gs
+
+        return embeddings.cpu().numpy()
+
+    def _get_I_i(self, curr_qs_val, data_embs, upd, curr_nontrain_sims, curr_val_anss):    
         eps = 1e-8
         LARGE_NUMBER = 1/eps
 
@@ -72,7 +143,7 @@ class NUDGEM:
         return all_low_vals.reshape(-1), all_high_vals.reshape(-1)
 
 
-    def get_all_I_i(self, qs_val, val_batch_size, embs, upd, nontrain_sims, val_anss):
+    def _get_all_I_i(self, qs_val, val_batch_size, embs, upd, nontrain_sims, val_anss):
         maxs =[]
         mins =[]
         for val_batch_i in range(int(math.ceil(qs_val.shape[0]/val_batch_size))):
@@ -80,13 +151,13 @@ class NUDGEM:
                 curr_nontrain_sims = nontrain_sims[val_batch_i*val_batch_size:(val_batch_i+1)*val_batch_size]
             else:
                 curr_nontrain_sims = None
-            curr_mins, curr_maxs = self.get_I_i(qs_val[val_batch_i*val_batch_size:(val_batch_i+1)*val_batch_size], embs, upd, curr_nontrain_sims, val_anss[val_batch_i*val_batch_size:(val_batch_i+1)*val_batch_size])
+            curr_mins, curr_maxs = self._get_I_i(qs_val[val_batch_i*val_batch_size:(val_batch_i+1)*val_batch_size], embs, upd, curr_nontrain_sims, val_anss[val_batch_i*val_batch_size:(val_batch_i+1)*val_batch_size])
             mins.append(curr_mins)
             maxs.append(curr_maxs)
 
         return np.concatenate(mins), np.concatenate(maxs)
 
-    def get_point_of_most_intersection(self, mins, maxs):
+    def _get_point_of_most_intersection(self, mins, maxs):
         best_i = -1
         maxs = np.sort(maxs)
         mins = np.sort(mins)
@@ -134,85 +205,51 @@ class NUDGEM:
 
 
 
-    def finetune_embeddings(self, embeddings, train_set, val_set, nontrain_embeddings=None, val_batch_size=256, gamma=None):
-        embeddings = normalize(torch.from_numpy(embeddings).to(self.device))
-        qs_train = torch.from_numpy(train_set["q_embs"]).to(self.device)
-        qs_val = torch.from_numpy(val_set["q_embs"]).to(self.device)
-
-        nontrain_sims = None
-        if nontrain_embeddings is not None:
-            nontrain_sims = compute_topk_sims(qs_val, nontrain_embeddings, 1, "cos", val_batch_size)
-            if nontrain_sims is not None:
-                nontrain_sims = nontrain_sims.reshape((-1, 1))
-
-        print("Calculating G")
-        train_doc_to_q = [[] for i in range(embeddings.shape[0])]
-        for i in range(len(qs_train)):
-            for j in range(len(train_set["q_ans_indx"][i])):
-                emb_indx = train_set["q_ans_indx"][i][j]
-                train_doc_to_q[emb_indx].append(i)
-
-        gs = []
-        for j in range(embeddings.shape[0]):
-            gs.append(torch.nan_to_num(-1*qs_train[train_doc_to_q[j]].sum(dim=0, keepdim=True)))
-        gs = normalize(torch.cat(gs, dim=0))
-
-        print("Finding gamma")
-        if gamma is None:
-            intrval_min_points, intrval_max_points= self.get_all_I_i(qs_val, val_batch_size, embeddings, gs, nontrain_sims, val_set["q_ans_indx"])
-
-            gamma_star = self.get_point_of_most_intersection(intrval_min_points, intrval_max_points)
-        else:
-            gamma_star=gamma
-        embeddings = embeddings-gamma_star*gs
-
-        return embeddings.cpu().numpy()
 
 
 class NUDGEN:
-    def __init__(self, device=None):
+    def __init__(self, 
+            device: torch.device = None
+            ) -> None:
+        '''
+        Args: 
+            device (torch.device): Device to use for computation. If None, it uses torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        '''
+
         if device is None:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
             self.device = device
         return
 
-    def get_train_val_sets(self, train_set, val_set, data_size):
-        qs_train = torch.from_numpy(train_set["q_embs"]).to(self.device)
-        train_anss = train_set["q_ans_indx"]
+    def finetune_embeddings(self, 
+            embeddings: np.ndarray, 
+            train_set: QueriesAnswersDict, 
+            val_set: QueriesAnswersDict, 
+            nontrain_embeddings: np.ndarray = None, 
+            val_batch_size: int = 256, 
+            val_k: int = 1, 
+            gamma: List[float] = None
+            ) -> np.ndarray:
+        '''Fine-tunes the embeddings based on the train_set and val_set using NUDGE-N algorithm
 
-        train_doc_to_q = [[] for i in range(data_size)]
-        for i in range(len(qs_train)):
-            for j in range(len(train_anss[i])):
-                emb_indx = train_anss[i][j]
-                train_doc_to_q[emb_indx].append(i)
-        
+        The function computes a Delta matrix to add to the embeddings, computed by solving a constrined optimizeation problem. It returns new embeddings
 
-        qs_val = torch.from_numpy(val_set["q_embs"]).to(self.device)
-        val_anss = val_set["q_ans_indx"]
-        answer_val = torch.zeros(len(qs_val), data_size).to(self.device)
-        for i in range(len(qs_val)): 
-            for j in range(len(val_anss[i])):
-                emb_indx = val_anss[i][j]
-                answer_val[i, emb_indx] = 1
+        Args: 
+            embeddings (np.ndarray): Non-fine-tuned embeddings obtaind from a pre-trained embedding model
+            train_set (QueriesAnswersDict): A dictionary of the form {'q_embs': np.ndarray,  'q_ans_indx': List[List[int]]}, where train_set['q_embs'] contains embeddings for training queries and train_set['q_ans_indx'] contains ground-truth answers. train_set['q_ans_indx'][i] contains indexes of embeddings that are correct answers to the i-th query. That is, embeddings[train_set['q_ans_indx'][i][j]] is a positive sample for train_set['q_embs'][i]
+            val_set (QueriesAnswersDict): Similar to train_set but for validation
+            nontrain_embeddings (np.ndarray): If not None, it contains a set of data embeddings that are not the correct answer to training or validation queries. It can be used as a way of reducing memory consumption (default is None)
+            val_batch_size (int): Batch size for validation (default is 256)
+            val_k (int): k used for validation where validation accuracy for top-k answeres is used to select the best gamma  (default is 1) 
+            gamma (List[float]): If not None, it contains the list gamma values to check for validation (default is None)
 
-        return qs_train, train_doc_to_q, qs_val, answer_val
-    
-    def sol_maxm(self, gamma, embeddings, vTc, cTc, gs, zero_updates):
-        if gamma != 0:
-            mu = (vTc+torch.sqrt(gamma/(4-gamma)*(cTc-vTc**2))).reshape(-1, 1)
-            Z = (gs-vTc.reshape(-1, 1)*embeddings)/torch.sqrt(cTc-vTc**2).reshape(-1, 1)
-            delta = gamma*(gs-mu*embeddings)/(2*(mu-vTc.reshape(-1, 1)))
-            delta[zero_updates] = 0
-            new_embs = embeddings+delta
-            mask = ((embeddings*normalize(gs)).sum(axis=-1)>=1-gamma/2).reshape(-1, 1)
-            new_embs = mask*normalize(gs)+(~mask)*new_embs
-        else:
-            new_embs = embeddings
-        return new_embs
+        Returns:
+            np.ndarray: A numpy array containing  fine-tuned embeddings
 
-    def finetune_embeddings(self, embeddings, train_set, val_set, nontrain_embeddings=None, val_batch_size=256, val_k=1, gamma=None):
-        qs_train, train_doc_to_q, qs_val, answer_val = self.get_train_val_sets(train_set, val_set, embeddings.shape[0])
+        '''
+        qs_train, train_doc_to_q, qs_val, answer_val = self._get_train_val_sets(train_set, val_set, embeddings.shape[0])
 
         nontrain_sims = None
         if nontrain_embeddings is not None:
@@ -241,7 +278,7 @@ class NUDGEN:
         else:
             gamma_vals = [0.02*x for x in range(25)]
         for gamma in gamma_vals:
-            new_embs = self.sol_maxm(gamma, embeddings, vTc, cTc, gs, zero_updates)
+            new_embs = self._sol_maxm(gamma, embeddings, vTc, cTc, gs, zero_updates)
 
             preds = []
             for val_batch_i in range(int(math.ceil(embeddings.shape[0]/val_batch_size))):
@@ -256,9 +293,44 @@ class NUDGEN:
                 max_acc = val_acc
                 best_gamma = gamma
 
-        new_embs = self.sol_maxm(best_gamma, embeddings, vTc, cTc, gs, zero_updates)
+        new_embs = self._sol_maxm(best_gamma, embeddings, vTc, cTc, gs, zero_updates)
 
         return new_embs.cpu().numpy()
+
+    def _get_train_val_sets(self, train_set, val_set, data_size):
+        qs_train = torch.from_numpy(train_set["q_embs"]).to(self.device)
+        train_anss = train_set["q_ans_indx"]
+
+        train_doc_to_q = [[] for i in range(data_size)]
+        for i in range(len(qs_train)):
+            for j in range(len(train_anss[i])):
+                emb_indx = train_anss[i][j]
+                train_doc_to_q[emb_indx].append(i)
+        
+
+        qs_val = torch.from_numpy(val_set["q_embs"]).to(self.device)
+        val_anss = val_set["q_ans_indx"]
+        answer_val = torch.zeros(len(qs_val), data_size).to(self.device)
+        for i in range(len(qs_val)): 
+            for j in range(len(val_anss[i])):
+                emb_indx = val_anss[i][j]
+                answer_val[i, emb_indx] = 1
+
+        return qs_train, train_doc_to_q, qs_val, answer_val
+    
+    def _sol_maxm(self, gamma, embeddings, vTc, cTc, gs, zero_updates):
+        if gamma != 0:
+            mu = (vTc+torch.sqrt(gamma/(4-gamma)*(cTc-vTc**2))).reshape(-1, 1)
+            Z = (gs-vTc.reshape(-1, 1)*embeddings)/torch.sqrt(cTc-vTc**2).reshape(-1, 1)
+            delta = gamma*(gs-mu*embeddings)/(2*(mu-vTc.reshape(-1, 1)))
+            delta[zero_updates] = 0
+            new_embs = embeddings+delta
+            mask = ((embeddings*normalize(gs)).sum(axis=-1)>=1-gamma/2).reshape(-1, 1)
+            new_embs = mask*normalize(gs)+(~mask)*new_embs
+        else:
+            new_embs = embeddings
+        return new_embs
+
 
 
 
