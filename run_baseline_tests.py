@@ -11,7 +11,7 @@ def get_data_config(data_path, q_set, emb_model):
     elif os.path.isfile(f"{data_path}/nontrain_data_emb_shards_{q_set}_{emb_model}_0.npy"):
         load_all = False
     else:
-        assert False, f"embeddings not found for {q_set} with model {emb_model}"
+        assert False, f"embeddings not found for {q_set} with model {emb_model} at {data_path}/all_data_emb_{emb_model}_{q_set}.npy"
 
     if load_all:
         config= {
@@ -40,7 +40,7 @@ def get_data_config(data_path, q_set, emb_model):
 
 def run_all_test(data_path, output_path, image_or_text):
     #add "text-embedding-3-large" below to also run TE3-L
-    ALL_TXT_MODEL_NAMES = ["bge-small-en-v1.5", "gte-large-en-v1.5"]
+    ALL_TXT_MODEL_NAMES = ["bge-small-en-v1.5"]#, "gte-large-en-v1.5"]
     ALL_IMG_MODEL_NAMES = ["clip-vit-large-patch14", "clip-vit-base-patch32"]
 
     TEXT_DATASETS = ['nfcorpus', "scifact", "arguana", 'fever', "nq", "triviaqa", "hotpotqa"]
@@ -59,7 +59,7 @@ def run_all_test(data_path, output_path, image_or_text):
     base_test_name=f"baseline_res"
     if image_or_text == "text":
         for model_name in ALL_TXT_MODEL_NAMES:
-            methods_to_run = ["no_ft", "NUDGEM", "NUDGEN","AdapterFineTuner"]
+            methods_to_run = ["no_ft", "NUDGEN"]#, "NUDGEN","AdapterFineTuner"]
             #Uncomment to also run PTFT for BGE-S
             #if model_name in models_for_ptft:
             #    methods_to_run.append('PTFT')
