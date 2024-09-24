@@ -109,7 +109,7 @@ else:
     embeddings = data_emb[:max_nontest_index]
     nontrain_embeddings = data_emb[max_nontest_index:]
     
-new_embs_nudgen = NUDGEN().finetune_embeddings(embeddings, query_sets['train'], query_sets['dev'], (nontrain_embeddings, None))
+new_embs_nudgen = NUDGEN().finetune_embeddings(embeddings, query_sets['train'], query_sets['dev'], nontrain_embeddings)
 nudge_n_res = kNNRetriever(new_embs_nudgen, nontrain_embeddings).retrieve_topk_from_emb_batch(k=10, q_embeds=query_sets['test']['q_embs'])
 ```
 gives the same result as 
