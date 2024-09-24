@@ -7,6 +7,6 @@ Lightweight Non-Parametric Embedding Fine-Tuning
 __version__ = "0.1.0"
 __author__ = 'Sepanta Zeighami'
 
-from nudge.nudge import NUDGEM, NUDGEN
+from nudge.nudge import NUDGEM, NUDGEN, QueriesAnswersDict
 
-__all__ = ['NUDGEM', 'NUDGEN']
+__all__ = ['NUDGEM', 'NUDGEN', 'QueriesAnswersDict']

@@ -10,7 +10,6 @@ class QueriesAnswersDict(TypedDict):
     q_ans_indx: List[List[int]]
 
 def compute_topk_sims(q_embs, embeddings_nontrain, k, dist, batch_size):
-    topks_I =[]
     topks_D =[]
     for i in range(int(math.ceil(len(embeddings_nontrain)/batch_size))):
         if dist == "cos":
@@ -19,15 +18,10 @@ def compute_topk_sims(q_embs, embeddings_nontrain, k, dist, batch_size):
             curr_topk = torch.topk(torch.matmul(q_embs, torch.t(torch.from_numpy(embeddings_nontrain[i*batch_size:(i+1)*batch_size]).to(q_embs.device))), k=k, dim=1)
         else:
             assert False, "wrong dist metric"
-        topks_I.append(curr_topk.indices+i*batch_size)
         topks_D.append(curr_topk.values)
     all_topk = torch.topk(torch.cat(topks_D, dim=1), k=k, dim=1)
-    all_I = torch.cat(topks_I, dim=1)
-    topk_I = torch.gather(all_I, 1, all_topk.indices)
     topk_D = all_topk.values
 
-    if with_index:
-        return topk_D, topk_I
     return topk_D
 
 class NUDGEM:
