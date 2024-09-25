@@ -31,8 +31,9 @@ val_set = {'q_embs':val_q_embs, 'q_ans_indx':val_q_ans_indx}
 finetuned_embs_nudge_n = NUDGEN().finetune_embeddings(data_embs, train_set, val_set)
 finetuned_embs_nudge_m = NUDGEM().finetune_embeddings(data_embs, train_set, val_set)
 ```
-where `data_embs` is a numpy array containing data embeddings, `train_q_embs` and `val_q_embs` are numpy arrays containing embeddings of training queries and `train_q_ans_indx` and `val_q_ans_indx` contain ground-truth query answers. `train_q_ans_indx`/`val_q_ans_indx` are nested python lists, where the `i`-th item in `train_q_ans_indx`/`val_q_ans_indx` is the list of indexes of data records that are relevant to the `i`-th query. That is, `data_embs[train_q_ans_indx[i][j]]` is a positive data record for query `train_q_embs[i]`.
+where `data_embs` is a numpy array containing data embeddings, `train_q_embs` and `val_q_embs` are numpy arrays containing embeddings of training queries and `train_q_ans_indx` and `val_q_ans_indx` contain ground-truth query answers. `train_q_ans_indx`/`val_q_ans_indx` are nested python lists, where the `i`-th item in `train_q_ans_indx`/`val_q_ans_indx` is the list of indexes of data records that are relevant to the `i`-th query. That is, `data_embs[train_q_ans_indx[i][j]]` is a positive data record for query `train_q_embs[i]`. 
 
+After running the code, you can use `finetuned_embs_nudge_n` or `finetuned_embs_nudge_m` for similarity search instead of `data_embs`. 
 
 
 
