@@ -61,7 +61,7 @@ NUDGE-N recall@10: 43.7, ndcg@10: 44.5
 ```
 
 ### Other Datasets
-The text datasets in the paper are hosted on huggingface [here](https://huggingface.co/sepz) (the datasets were created using [this](https://github.com/szeighami/nudge/blob/main/process_data_to_hf_datasets.py) file). The above code can be run with any of `nfcorpus`, `scifact`, `arguana`, `fever`, `nq`, `triviaqa` and `hotpotqa`. For running experiments on image datasets, run `python run_end_to_end.py` to download and process the image datasets and to run the experiments on the image datasets (as well as text datasets).
+The text datasets in the paper are hosted on huggingface (the datasets were created using [this](https://github.com/szeighami/nudge/blob/main/process_data_to_hf_datasets.py) file). The above code can be run with any of `nfcorpus`, `scifact`, `arguana`, `fever`, `nq`, `triviaqa` and `hotpotqa`. For running experiments on image datasets, run `python run_end_to_end.py` to download and process the image datasets and to run the experiments on the image datasets (as well as text datasets).
 
 ### Larger Datasets
 For the larger dataset (i.e., `fever`, `nq`, `triviaqa` and `hotpotqa`), you may run out of memory if you run the above. Instead, `NUDGE` allows for an optimization where data records that are not an answer to any of the training or validation queries are filtered out and accounted for separately. Such data records still impact fine-tuning, but only through their impact on validation accuracy. The following code
