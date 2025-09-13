@@ -1,5 +1,5 @@
 # NUDGE
-NUDGE is a lightweight tool to fine-tune pre-trained embeddings for retrieval and RAG pipelines, presented in the paper [NUDGE: Lightweight Non-Parametric Embedding Fine-Tuning](https://arxiv.org/pdf/2409.02343) (see [this blog post](https://data-people-group.github.io/blogs/2024/09/05/nudge/) for a simple overview). It runs in minutes and often improves retrieval accuracy by over 10%. 
+NUDGE is a lightweight tool to fine-tune pre-trained embeddings for retrieval and RAG pipelines, presented in the paper [NUDGE: Lightweight Non-Parametric Embedding Fine-Tuning (appeared in ICLR'25)](https://arxiv.org/pdf/2409.02343) (see [this blog post](https://data-people-group.github.io/blogs/2024/09/05/nudge/) for a simple overview). It runs in minutes and often improves retrieval accuracy by over 10%. 
 
 NUDGE modifies data embeddings *non-parametrically*, i.e., it does not change any model parameters but instead moves the data embeddings themselves to maximize accuracy. NUDGE solves a constrained optimization problem to do so, moving data embeddings towards the embedding of training queries for which they are the ground-truth answer. NUDGE-M and NUDGE-N are two variants of the approach, each solving the optimization problem with different constraints.
 
@@ -124,8 +124,9 @@ but uses less memory if many data records are not an answer to any training quer
 ## Running End to End Experiments
 To reproduce all baseline experiments [in the paper](https://arxiv.org/pdf/2409.02343) (e.g, Tables 3-4) follow the instructions in the paper_exps branch of the repo.
 
-# References
-Sepanta Zeighami, Zac Wellmer, and Aditya Parameswaran. "NUDGE: Lightweight Non-Parametric Fine-Tuning of Embeddings for Retrieval." ICLR 2025.
+# References and Citation
+[Sepanta Zeighami, Zac Wellmer, and Aditya Parameswaran. "NUDGE: Lightweight Non-Parametric Fine-Tuning of Embeddings for Retrieval." The Fourteenth International Conference on Learning Representations
+(ICLR '25).](https://arxiv.org/pdf/2409.02343)
 
 @article{zeighami2024nudge,
   title={NUDGE: Lightweight Non-Parametric Fine-Tuning of Embeddings for Retrieval},
