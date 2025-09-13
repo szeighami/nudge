@@ -125,7 +125,7 @@ but uses less memory if many data records are not an answer to any training quer
 To reproduce all baseline experiments [in the paper](https://arxiv.org/pdf/2409.02343) (e.g, Tables 3-4) follow the instructions in the paper_exps branch of the repo.
 
 # References
-Sepanta Zeighami, Zac Wellmer, and Aditya Parameswaran. "NUDGE: Lightweight Non-Parametric Fine-Tuning of Embeddings for Retrieval." arXiv preprint arXiv:2409.02343 (2024).
+Sepanta Zeighami, Zac Wellmer, and Aditya Parameswaran. "NUDGE: Lightweight Non-Parametric Fine-Tuning of Embeddings for Retrieval." ICLR 2025.
 
 @article{zeighami2024nudge,
   title={NUDGE: Lightweight Non-Parametric Fine-Tuning of Embeddings for Retrieval},
